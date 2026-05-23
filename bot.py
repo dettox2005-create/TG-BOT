@@ -108,24 +108,7 @@ TEXTS = {
         "choose_lang": "🌐 Выберите язык интерфейса:\n\n🇷🇺 Русский  |  🇬🇧 English",
         "lang_set": "🇷🇺 Язык установлен: <b>Русский</b>",
 
-        # START
-        "start_header": (
-            "┌─────────────────────────┐\n"
-            "│  🖥  AI TRADING TERMINAL  │\n"
-            "│     OTC PRO v4.0        │\n"
-            "└─────────────────────────┘\n\n"
-            "⚡ <b>Профессиональная система сигналов</b> для OTC рынка Pocket Option.\n\n"
-            "🧠 <b>Smart Precision Engine:</b>\n"
-            "▸ 12 OTC пар с флагами стран\n"
-            "▸ Таймфреймы: 5с / 10с / 15с / 30с\n"
-            "▸ 6 блоков анализа (RSI + EMA + MACD + BB + Stoch + паттерны)\n"
-            "▸ AI уверенность: 78–96%\n\n"
-            "👥 Трейдеров: <b>{users}</b>\n"
-            "📡 WinRate: <b>88–96%</b>  |  🟢 <b>24/7</b>\n"
-            "🕐 {time}"
-        ),
-
-        # BEGINNER WELCOME (shown after language select for first-timers)
+        # BEGINNER WELCOME (shown after language select)
         "welcome_guide": (
             "👋 <b>Добро пожаловать!</b>\n"
             "{div}\n\n"
@@ -623,23 +606,6 @@ TEXTS = {
         # LANG SELECT
         "choose_lang": "🌐 Choose interface language:\n\n🇷🇺 Русский  |  🇬🇧 English",
         "lang_set": "🇬🇧 Language set: <b>English</b>",
-
-        # START
-        "start_header": (
-            "┌─────────────────────────┐\n"
-            "│  🖥  AI TRADING TERMINAL  │\n"
-            "│     OTC PRO v4.0        │\n"
-            "└─────────────────────────┘\n\n"
-            "⚡ <b>Professional signal system</b> for Pocket Option OTC market.\n\n"
-            "🧠 <b>Smart Precision Engine:</b>\n"
-            "▸ 12 OTC pairs with country flags\n"
-            "▸ Timeframes: 5s / 10s / 15s / 30s\n"
-            "▸ 6 analysis blocks (RSI + EMA + MACD + BB + Stoch + patterns)\n"
-            "▸ AI confidence: 78–96%\n\n"
-            "👥 Traders: <b>{users}</b>\n"
-            "📡 WinRate: <b>88–96%</b>  |  🟢 <b>24/7</b>\n"
-            "🕐 {time}"
-        ),
 
         # BEGINNER WELCOME
         "welcome_guide": (
@@ -1429,7 +1395,6 @@ def days_bar(used: int, total: int) -> str:
         return "░" * 10
     pct = used / total
     filled = int(pct * 10)
-    # If there are used days but filled rounds to 0, show at least 1 block
     if used > 0 and filled == 0:
         filled = 1
     filled = max(0, min(10, filled))
@@ -1471,12 +1436,12 @@ user_temp_data   = {}
 pending_users    = set()
 pending_support  = set()
 pending_lot_calc = set()
-pending_lang     = set()   # users currently selecting language
+pending_lang     = set()
 
-last_signal_request = {}   # uid -> timestamp of last successful signal
+last_signal_request = {}
 
 # In-memory language cache (also persisted to DB)
-user_lang: dict[int, str] = {}   # uid -> "ru" | "en"
+user_lang: dict[int, str] = {}
 
 # Track first-time users (shown welcome guide once after lang select)
 new_users: set[int] = set()
@@ -1484,9 +1449,6 @@ new_users: set[int] = set()
 # ════════════════════════════════════════════════
 #              KEYBOARDS (language-aware)
 # ════════════════════════════════════════════════
-
-# CHANGED: removed "О боте"/"About" and "Калькулятор лота"/"Lot Calculator" buttons.
-# CHANGED: merged "Торговая Панель"/"Trading Panel" into "Получить Сигнал"/"Get Signal" — single button.
 def get_main_menu(has_access: bool, uid: int = 0):
     if uid and user_lang.get(uid) == "en":
         keyboard = [
@@ -1668,36 +1630,20 @@ async def set_language(callback: CallbackQuery):
     user_lang[uid] = lang
     db_update_user(uid, lang=lang)
 
+    u = db_get_user(uid)
+
+    # Show language confirmation + welcome guide
     confirmation = TEXTS[lang]["lang_set"]
     await callback.message.edit_text(confirmation, parse_mode="HTML")
 
-    u           = db_get_user(uid)
-    total_users = db_get_total_users()
-
-    # Build time string: RU → MSK, EN → UTC
-    if lang == "en":
-        now_str = datetime.utcnow().strftime("%d.%m.%Y %H:%M") + " UTC"
-    else:
-        now_str = (datetime.utcnow() + timedelta(hours=3)).strftime("%d.%m.%Y %H:%M") + " МСК"
-
-    start_text = TEXTS[lang]["start_header"].format(
-        users=f"{total_users + 152:,}",
-        time=now_str
-    )
+    # Send welcome guide and main menu
     await callback.message.answer(
-        start_text,
+        TEXTS[lang]["welcome_guide"].format(div=DIV),
         reply_markup=get_main_menu(u["has_access"], uid),
         parse_mode="HTML"
     )
 
-    # Show beginner welcome guide for first-time users
-    if uid in new_users:
-        new_users.discard(uid)
-        await callback.message.answer(
-            TEXTS[lang]["welcome_guide"].format(div=DIV),
-            parse_mode="HTML"
-        )
-
+    new_users.discard(uid)
     await callback.answer()
 
 # ════════════════════════════════════════════════
@@ -1844,7 +1790,7 @@ async def start(message: Message):
     # Load lang from DB
     db_get_user(uid)
 
-    # Mark as new user to show welcome guide after lang select
+    # Mark as new user
     new_users.add(uid)
 
     # Show language selection
@@ -1983,7 +1929,6 @@ async def process_support_message(message: Message):
 
     username = message.from_user.username or "—"
     name     = message.from_user.full_name or "—"
-    # Admin always gets Russian
     await bot.send_message(
         ADMIN_ID,
         TEXTS["ru"]["admin_support_msg"].format(
@@ -2405,7 +2350,6 @@ async def profile(message: Message):
             break
 
     used_pct  = min(int((u["daily_count"] / sub_limit) * 10), 10)
-    # Ensure at least 1 filled block if any signals used today
     if u["daily_count"] > 0 and used_pct == 0:
         used_pct = 1
     daily_bar = "▓" * used_pct + "░" * (10 - used_pct)
@@ -2480,7 +2424,6 @@ async def stats(message: Message):
         bar_h = "█" * vol + "░" * (10 - vol)
         hourly_bars += f"  {h:02d}:00  <code>{bar_h}</code>\n"
 
-    # Language-aware time label
     if lang == "en":
         date_str = datetime.utcnow().strftime('%d.%m.%Y %H:%M')
     else:
