@@ -129,19 +129,22 @@ TEXTS = {
         "welcome_guide": (
             "👋 <b>Добро пожаловать!</b>\n"
             "{div}\n\n"
-            "Вот как начать за <b>3 шага:</b>\n\n"
-            "1️⃣ Нажмите <b>«🔐 Активировать доступ»</b>\n"
-            "   → Зарегистрируйтесь на Pocket Option\n"
-            "   → Пополните от $50\n"
-            "   → Отправьте ваш ID\n\n"
-            "2️⃣ Откройте <b>«📊 Торговая Панель»</b>\n"
-            "   → Выберите валютную пару\n"
-            "   → Выберите время экспирации\n\n"
-            "3️⃣ Нажмите <b>«⚡ Получить Сигнал»</b>\n"
+            "Этот бот даёт <b>торговые сигналы</b> для платформы <b>Pocket Option</b>.\n"
+            "Сигнал говорит: купить (CALL) или продать (PUT) — ты открываешь сделку.\n\n"
+            "<b>Как начать за 3 шага:</b>\n\n"
+            "1️⃣ <b>Получи доступ</b> — нажми «🔐 Активировать доступ»\n"
+            "   → Зарегистрируйся на Pocket Option по нашей ссылке\n"
+            "   → Пополни от $50\n"
+            "   → Отправь свой ID — активация за пару минут\n\n"
+            "2️⃣ <b>Выбери пару и время</b> — нажми «⚡ Получить Сигнал»\n"
+            "   → Выбери валютную пару\n"
+            "   → Выбери время экспирации (5с / 10с / 15с / 30с)\n\n"
+            "3️⃣ <b>Торгуй по сигналу</b>\n"
             "   → AI проанализирует рынок\n"
-            "   → Получите точку входа (CALL/PUT)\n\n"
+            "   → Открой сделку CALL или PUT на Pocket Option\n\n"
             "{div}\n"
-            "❓ Есть вопросы? Жмите <b>«🆘 Поддержка»</b>"
+            "💡 <i>CALL = цена пойдёт вверх · PUT = цена пойдёт вниз</i>\n\n"
+            "❓ Есть вопросы? Жми <b>«🆘 Поддержка»</b>"
         ),
 
         # MENU BUTTONS
@@ -311,8 +314,7 @@ TEXTS = {
             "🚀 <b>VIP ДОСТУП АКТИВИРОВАН!</b>\n"
             "{div}\n\n"
             "✅ Аккаунт верифицирован. Все модули разблокированы.\n\n"
-            "📊 Нажмите <b>«📊 Торговая Панель»</b>\n"
-            "⚡ Или сразу к <b>«⚡ Получить Сигнал»</b>\n\n"
+            "⚡ Нажмите <b>«⚡ Получить Сигнал»</b> — выберите пару и время прямо там.\n\n"
             "<i>Прибыльных сделок! 📈</i>"
         ),
         "access_revoked": (
@@ -344,9 +346,8 @@ TEXTS = {
         ),
         "no_pair_selected": (
             "⚠️ <b>Пара не выбрана!</b>\n\n"
-            "Сначала откройте <b>«📊 Торговая Панель»</b>,\n"
-            "выберите пару → затем время экспирации.\n\n"
-            "<i>Только после этого сигнал будет доступен.</i>"
+            "Нажмите <b>«⚡ Получить Сигнал»</b> ещё раз — вам предложат выбрать пару и время.\n\n"
+            "<i>Или просто нажмите кнопку ещё раз — откроется выбор пары.</i>"
         ),
         "no_time_selected": (
             "⚠️ <b>Время не выбрано!</b>\n\n"
@@ -355,7 +356,7 @@ TEXTS = {
         ),
         "select_pair_first": (
             "⚠️ Сначала выберите пару.\n"
-            "Нажмите <b>«📊 Торговая Панель»</b>."
+            "Нажмите <b>«⚡ Получить Сигнал»</b>."
         ),
 
         # SIGNAL
@@ -644,18 +645,21 @@ TEXTS = {
         "welcome_guide": (
             "👋 <b>Welcome!</b>\n"
             "{div}\n\n"
-            "Here's how to get started in <b>3 steps:</b>\n\n"
-            "1️⃣ Press <b>«🔐 Activate Access»</b>\n"
-            "   → Register on Pocket Option\n"
+            "This bot provides <b>trading signals</b> for the <b>Pocket Option</b> platform.\n"
+            "A signal tells you: buy (CALL) or sell (PUT) — you open the trade.\n\n"
+            "<b>Get started in 3 steps:</b>\n\n"
+            "1️⃣ <b>Get access</b> — press «🔐 Activate Access»\n"
+            "   → Register on Pocket Option via our link\n"
             "   → Deposit from $50\n"
-            "   → Send your ID\n\n"
-            "2️⃣ Open <b>«📊 Trading Panel»</b>\n"
+            "   → Send your ID — activation in a few minutes\n\n"
+            "2️⃣ <b>Choose pair & time</b> — press «⚡ Get Signal»\n"
             "   → Select a currency pair\n"
-            "   → Select expiration time\n\n"
-            "3️⃣ Press <b>«⚡ Get Signal»</b>\n"
+            "   → Select expiration time (5s / 10s / 15s / 30s)\n\n"
+            "3️⃣ <b>Trade the signal</b>\n"
             "   → AI analyses the market\n"
-            "   → Get your entry point (CALL/PUT)\n\n"
+            "   → Open a CALL or PUT trade on Pocket Option\n\n"
             "{div}\n"
+            "💡 <i>CALL = price goes UP · PUT = price goes DOWN</i>\n\n"
             "❓ Any questions? Press <b>«🆘 Support»</b>"
         ),
 
@@ -826,8 +830,7 @@ TEXTS = {
             "🚀 <b>VIP ACCESS ACTIVATED!</b>\n"
             "{div}\n\n"
             "✅ Account verified. All modules unlocked.\n\n"
-            "📊 Press <b>«📊 Trading Panel»</b>\n"
-            "⚡ Or go straight to <b>«⚡ Get Signal»</b>\n\n"
+            "⚡ Press <b>«⚡ Get Signal»</b> — select pair and time right there.\n\n"
             "<i>Profitable trades! 📈</i>"
         ),
         "access_revoked": (
@@ -859,9 +862,8 @@ TEXTS = {
         ),
         "no_pair_selected": (
             "⚠️ <b>No pair selected!</b>\n\n"
-            "First open <b>«📊 Trading Panel»</b>,\n"
-            "select a pair → then expiration time.\n\n"
-            "<i>Only after that the signal will be available.</i>"
+            "Press <b>«⚡ Get Signal»</b> again — you'll be prompted to select a pair and time.\n\n"
+            "<i>Just press the button again — the pair selection will open.</i>"
         ),
         "no_time_selected": (
             "⚠️ <b>No time selected!</b>\n\n"
@@ -870,7 +872,7 @@ TEXTS = {
         ),
         "select_pair_first": (
             "⚠️ Please select a pair first.\n"
-            "Press <b>«📊 Trading Panel»</b>."
+            "Press <b>«⚡ Get Signal»</b>."
         ),
 
         # SIGNAL
@@ -1422,8 +1424,15 @@ def confidence_bar(pct: int) -> str:
     return "▓" * filled + "░" * (10 - filled)
 
 def days_bar(used: int, total: int) -> str:
-    pct = used / total if total > 0 else 0
+    """Returns a 10-char bar. used/total = fraction filled. Minimum 1 filled block if used > 0."""
+    if total <= 0:
+        return "░" * 10
+    pct = used / total
     filled = int(pct * 10)
+    # If there are used days but filled rounds to 0, show at least 1 block
+    if used > 0 and filled == 0:
+        filled = 1
+    filled = max(0, min(10, filled))
     return "█" * filled + "░" * (10 - filled)
 
 def calc_lot(balance: float) -> dict:
@@ -1475,13 +1484,15 @@ new_users: set[int] = set()
 # ════════════════════════════════════════════════
 #              KEYBOARDS (language-aware)
 # ════════════════════════════════════════════════
+
+# CHANGED: removed "О боте"/"About" and "Калькулятор лота"/"Lot Calculator" buttons.
+# CHANGED: merged "Торговая Панель"/"Trading Panel" into "Получить Сигнал"/"Get Signal" — single button.
 def get_main_menu(has_access: bool, uid: int = 0):
     if uid and user_lang.get(uid) == "en":
         keyboard = [
-            [KeyboardButton(text="📊 Trading Panel"), KeyboardButton(text="⚡ Get Signal")],
-            [KeyboardButton(text="👤 Profile"),        KeyboardButton(text="📈 Statistics")],
-            [KeyboardButton(text="💎 Subscription"),   KeyboardButton(text="🚀 About")],
-            [KeyboardButton(text="🧮 Lot Calculator")],
+            [KeyboardButton(text="⚡ Get Signal")],
+            [KeyboardButton(text="👤 Profile"), KeyboardButton(text="📈 Statistics")],
+            [KeyboardButton(text="💎 Subscription")],
         ]
         row_bottom = []
         if not has_access:
@@ -1490,10 +1501,9 @@ def get_main_menu(has_access: bool, uid: int = 0):
         keyboard.append(row_bottom)
     else:
         keyboard = [
-            [KeyboardButton(text="📊 Торговая Панель"), KeyboardButton(text="⚡ Получить Сигнал")],
-            [KeyboardButton(text="👤 Профиль"),          KeyboardButton(text="📈 Статистика")],
-            [KeyboardButton(text="💎 Подписка"),          KeyboardButton(text="🚀 О боте")],
-            [KeyboardButton(text="🧮 Калькулятор лота")],
+            [KeyboardButton(text="⚡ Получить Сигнал")],
+            [KeyboardButton(text="👤 Профиль"), KeyboardButton(text="📈 Статистика")],
+            [KeyboardButton(text="💎 Подписка")],
         ]
         row_bottom = []
         if not has_access:
@@ -1549,14 +1559,14 @@ def get_signal_kb(uid: int = 0):
         return ReplyKeyboardMarkup(
             keyboard=[
                 [KeyboardButton(text="⚡ Get Signal")],
-                [KeyboardButton(text="📊 Trading Panel"), KeyboardButton(text="⬅️ Menu")]
+                [KeyboardButton(text="⬅️ Menu")]
             ],
             resize_keyboard=True
         )
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="⚡ Получить Сигнал")],
-            [KeyboardButton(text="📊 Торговая Панель"), KeyboardButton(text="⬅️ Меню")]
+            [KeyboardButton(text="⬅️ Меню")]
         ],
         resize_keyboard=True
     )
@@ -1845,29 +1855,9 @@ async def start(message: Message):
         parse_mode="HTML"
     )
 
-@dp.message(F.text.in_({"🚀 About", "🚀 О боте"}))
-async def about_bot(message: Message):
-    uid  = message.from_user.id
-    lang = user_lang.get(uid, "ru")
-    t    = TEXTS[lang]
-    pairs_list = "\n".join([f"  ▸ {p}" for p in pairs])
-    text = t["about"].format(div=DIV, pairs=pairs_list)
-    await message.answer(text, parse_mode="HTML")
-
 # ════════════════════════════════════════════════
-#         🧮 LOT CALCULATOR
+#         🧮 LOT CALCULATOR (inline from profile)
 # ════════════════════════════════════════════════
-@dp.message(F.text.in_({"🧮 Lot Calculator", "🧮 Калькулятор лота"}))
-async def lot_calculator(message: Message):
-    uid  = message.from_user.id
-    lang = user_lang.get(uid, "ru")
-    pending_lot_calc.add(uid)
-    await message.answer(
-        TEXTS[lang]["lot_calc_enter"].format(div=DIV),
-        reply_markup=get_back_kb(uid),
-        parse_mode="HTML"
-    )
-
 @dp.message(lambda msg: msg.from_user.id in pending_lot_calc)
 async def process_lot_calc(message: Message):
     uid  = message.from_user.id
@@ -2153,65 +2143,10 @@ async def admin_broadcast(message: Message):
         await message.answer(f"⚠️ Format: <code>/broadcast text</code>\n{e}", parse_mode="HTML")
 
 # ════════════════════════════════════════════════
-#              TRADING PANEL
-# ════════════════════════════════════════════════
-@dp.message(F.text.in_({"📊 Trading Panel", "📊 Торговая Панель"}))
-async def t_panel(message: Message):
-    uid = message.from_user.id
-    if not db_get_user(uid)["has_access"]:
-        return
-    lang = user_lang.get(uid, "ru")
-    t    = TEXTS[lang]
-
-    session_key, time_str = get_session_info(lang)
-    session_info = t[session_key]
-
-    await message.answer(
-        t["trading_panel"].format(
-            div=DIV,
-            session=session_info,
-            time=time_str,
-        ),
-        reply_markup=pair_kb,
-        parse_mode="HTML"
-    )
-
-@dp.message(F.text.in_(set(pairs)))
-async def set_pair(message: Message):
-    uid  = message.from_user.id
-    lang = user_lang.get(uid, "ru")
-    t    = TEXTS[lang]
-    user_temp_data[uid] = {"pair": message.text}
-    await message.answer(
-        t["pair_selected"].format(pair=message.text),
-        reply_markup=time_kb,
-        parse_mode="HTML"
-    )
-
-@dp.message(F.text.in_(set(times)))
-async def set_time(message: Message):
-    uid  = message.from_user.id
-    lang = user_lang.get(uid, "ru")
-    t    = TEXTS[lang]
-
-    if uid not in user_temp_data or "pair" not in user_temp_data.get(uid, {}):
-        await message.answer(
-            t["select_pair_first"],
-            parse_mode="HTML"
-        )
-        return
-
-    user_temp_data[uid]["time"] = message.text
-    pair = user_temp_data[uid]["pair"]
-
-    await message.answer(
-        t["time_selected"].format(div=DIV, pair=pair, time=message.text),
-        reply_markup=get_signal_kb(uid),
-        parse_mode="HTML"
-    )
-
-# ════════════════════════════════════════════════
-#     MAIN SIGNAL HANDLER
+#   TRADING PANEL — now triggered by Get Signal
+#   First press: show pair selection
+#   If pair already selected but no time: show time selection
+#   If both selected: generate signal
 # ════════════════════════════════════════════════
 @dp.message(Command("signals"))
 @dp.message(F.text.in_({"⚡ Get Signal", "⚡ Получить Сигнал"}))
@@ -2223,6 +2158,33 @@ async def get_signal(message: Message):
     if not u["has_access"]:
         return
 
+    data = user_temp_data.get(uid, {})
+
+    # Step 1: No pair selected — show trading panel (pair selection)
+    if not data.get("pair"):
+        session_key, time_str = get_session_info(lang)
+        session_info = t[session_key]
+        await message.answer(
+            t["trading_panel"].format(
+                div=DIV,
+                session=session_info,
+                time=time_str,
+            ),
+            reply_markup=pair_kb,
+            parse_mode="HTML"
+        )
+        return
+
+    # Step 2: Pair selected but no time — show time selection
+    if not data.get("time"):
+        await message.answer(
+            t["no_time_selected"].format(pair=data['pair']),
+            reply_markup=time_kb,
+            parse_mode="HTML"
+        )
+        return
+
+    # Step 3: Both selected — generate signal
     # Anti-spam
     now_ts  = time.time()
     last_ts = last_signal_request.get(uid, 0)
@@ -2252,24 +2214,6 @@ async def get_signal(message: Message):
                 reply_markup=get_upgrade_kb(uid),
                 parse_mode="HTML"
             )
-
-    # Check configuration
-    data = user_temp_data.get(uid, {})
-
-    if not data.get("pair"):
-        return await message.answer(
-            t["no_pair_selected"],
-            reply_markup=get_main_menu(True, uid),
-            parse_mode="HTML"
-        )
-
-    if not data.get("time"):
-        await message.answer(
-            t["no_time_selected"].format(pair=data['pair']),
-            reply_markup=time_kb,
-            parse_mode="HTML"
-        )
-        return
 
     last_signal_request[uid] = now_ts
 
@@ -2391,6 +2335,40 @@ async def get_signal(message: Message):
     except Exception as e:
         print(f"Signal send error: {e}")
 
+@dp.message(F.text.in_(set(pairs)))
+async def set_pair(message: Message):
+    uid  = message.from_user.id
+    lang = user_lang.get(uid, "ru")
+    t    = TEXTS[lang]
+    user_temp_data[uid] = {"pair": message.text}
+    await message.answer(
+        t["pair_selected"].format(pair=message.text),
+        reply_markup=time_kb,
+        parse_mode="HTML"
+    )
+
+@dp.message(F.text.in_(set(times)))
+async def set_time(message: Message):
+    uid  = message.from_user.id
+    lang = user_lang.get(uid, "ru")
+    t    = TEXTS[lang]
+
+    if uid not in user_temp_data or "pair" not in user_temp_data.get(uid, {}):
+        await message.answer(
+            t["select_pair_first"],
+            parse_mode="HTML"
+        )
+        return
+
+    user_temp_data[uid]["time"] = message.text
+    pair = user_temp_data[uid]["pair"]
+
+    await message.answer(
+        t["time_selected"].format(div=DIV, pair=pair, time=message.text),
+        reply_markup=get_signal_kb(uid),
+        parse_mode="HTML"
+    )
+
 # ════════════════════════════════════════════════
 #              PROFILE
 # ════════════════════════════════════════════════
@@ -2427,6 +2405,9 @@ async def profile(message: Message):
             break
 
     used_pct  = min(int((u["daily_count"] / sub_limit) * 10), 10)
+    # Ensure at least 1 filled block if any signals used today
+    if u["daily_count"] > 0 and used_pct == 0:
+        used_pct = 1
     daily_bar = "▓" * used_pct + "░" * (10 - used_pct)
 
     name    = message.from_user.first_name or "Trader"
