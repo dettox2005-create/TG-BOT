@@ -66,6 +66,40 @@ def is_market_open() -> bool:
     return True
 
 # ═══════════════════════════════════════════════
+#         SESSION HELPERS (language-aware)
+# ═══════════════════════════════════════════════
+def get_session_info(lang: str) -> tuple[str, str]:
+    """Returns (session_label, time_string) based on language.
+    RU → MSK time, EN → UTC time with UTC label."""
+    now_utc = datetime.utcnow()
+    now_msk = now_utc + timedelta(hours=3)
+
+    if lang == "en":
+        hour = now_utc.hour
+        time_str = now_utc.strftime('%H:%M') + " UTC"
+        if 0 <= hour < 7:
+            session_key = "session_asian"
+        elif 7 <= hour < 15:
+            session_key = "session_eu"
+        elif 15 <= hour < 20:
+            session_key = "session_us"
+        else:
+            session_key = "session_night"
+    else:
+        hour = now_msk.hour
+        time_str = now_msk.strftime('%H:%M') + " МСК"
+        if 3 <= hour < 10:
+            session_key = "session_asian"
+        elif 10 <= hour < 18:
+            session_key = "session_eu"
+        elif 18 <= hour < 23:
+            session_key = "session_us"
+        else:
+            session_key = "session_night"
+
+    return session_key, time_str
+
+# ═══════════════════════════════════════════════
 #              TRANSLATIONS
 # ═══════════════════════════════════════════════
 TEXTS = {
@@ -74,26 +108,50 @@ TEXTS = {
         "choose_lang": "🌐 Выберите язык интерфейса:\n\n🇷🇺 Русский  |  🇬🇧 English",
         "lang_set": "🇷🇺 Язык установлен: <b>Русский</b>",
 
-        # START — простое и понятное приветствие с анимацией через эмодзи
+        # START
         "start_header": (
-            "✦ ✦ ✦  AI TRADING BOT  ✦ ✦ ✦\n\n"
-            "👋 Привет! Я помогаю трейдерам получать <b>торговые сигналы</b> для платформы <b>Pocket Option</b>.\n\n"
-            "⚡ <b>Что я умею:</b>\n"
-            "  → Анализирую рынок за секунды\n"
-            "  → Даю сигнал: ВВЕРХ или ВНИЗ\n"
-            "  → Показываю уверенность AI в %\n"
-            "  → Работаю 24/7 без перерывов\n\n"
-            "📊 <b>Сейчас активных трейдеров:</b> <b>{users}</b>\n"
-            "🎯 <b>Точность сигналов:</b> 88–96%\n\n"
-            "🕐 {time} МСК\n\n"
-            "👇 <b>Нажми кнопку ниже, чтобы начать:</b>"
+            "┌─────────────────────────┐\n"
+            "│  🖥  AI TRADING TERMINAL  │\n"
+            "│     OTC PRO v4.0        │\n"
+            "└─────────────────────────┘\n\n"
+            "⚡ <b>Профессиональная система сигналов</b> для OTC рынка Pocket Option.\n\n"
+            "🧠 <b>Smart Precision Engine:</b>\n"
+            "▸ 12 OTC пар с флагами стран\n"
+            "▸ Таймфреймы: 5с / 10с / 15с / 30с\n"
+            "▸ 6 блоков анализа (RSI + EMA + MACD + BB + Stoch + паттерны)\n"
+            "▸ AI уверенность: 78–96%\n\n"
+            "👥 Трейдеров: <b>{users}</b>\n"
+            "📡 WinRate: <b>88–96%</b>  |  🟢 <b>24/7</b>\n"
+            "🕐 {time}"
+        ),
+
+        # BEGINNER WELCOME (shown after language select for first-timers)
+        "welcome_guide": (
+            "👋 <b>Добро пожаловать!</b>\n"
+            "{div}\n\n"
+            "Вот как начать за <b>3 шага:</b>\n\n"
+            "1️⃣ Нажмите <b>«🔐 Активировать доступ»</b>\n"
+            "   → Зарегистрируйтесь на Pocket Option\n"
+            "   → Пополните от $50\n"
+            "   → Отправьте ваш ID\n\n"
+            "2️⃣ Откройте <b>«📊 Торговая Панель»</b>\n"
+            "   → Выберите валютную пару\n"
+            "   → Выберите время экспирации\n\n"
+            "3️⃣ Нажмите <b>«⚡ Получить Сигнал»</b>\n"
+            "   → AI проанализирует рынок\n"
+            "   → Получите точку входа (CALL/PUT)\n\n"
+            "{div}\n"
+            "❓ Есть вопросы? Жмите <b>«🆘 Поддержка»</b>"
         ),
 
         # MENU BUTTONS
-        "btn_signal": "⚡ Получить сигнал",
+        "btn_trading_panel": "📊 Торговая Панель",
+        "btn_get_signal": "⚡ Получить Сигнал",
         "btn_profile": "👤 Профиль",
         "btn_stats": "📈 Статистика",
         "btn_subscription": "💎 Подписка",
+        "btn_about": "🚀 О боте",
+        "btn_lot_calc": "🧮 Калькулятор лота",
         "btn_activate": "🔐 Активировать доступ",
         "btn_support": "🆘 Поддержка",
         "btn_back": "⬅️ Назад",
@@ -102,18 +160,52 @@ TEXTS = {
 
         # ACCESS RESTRICTED
         "access_restricted": (
-            "🔒 <b>Доступ закрыт</b>\n"
-            "{div}\n"
-            "Чтобы пользоваться ботом — сначала активируй доступ.\n\n"
-            "Нажми 👉 <b>«🔐 Активировать доступ»</b>"
+            "🔒 <b>ДОСТУП ОГРАНИЧЕН</b>\n"
+            "{div}\n\n"
+            "Этот раздел доступен только верифицированным трейдерам.\n\n"
+            "📋 <b>Как получить доступ:</b>\n"
+            "▸ Нажмите <b>«🔐 Активировать доступ»</b>\n"
+            "▸ Зарегистрируйтесь на Pocket Option по нашей ссылке\n"
+            "▸ Пополните депозит от $50\n"
+            "▸ Отправьте ваш ID — активация за несколько минут ✅"
         ),
 
-        # LOT CALCULATOR (оставляем логику, убираем кнопку из меню)
+        # ABOUT
+        "about": (
+            "🤖 <b>AI TRADING TERMINAL — OTC PRO v4.0</b>\n"
+            "{div}\n\n"
+            "📡 <b>Платформа:</b> Pocket Option (OTC)\n\n"
+            "🧠 <b>Smart Precision Engine v4:</b>\n"
+            "  ▸ RSI(14)\n"
+            "  ▸ EMA(9/21) crossover + тренд\n"
+            "  ▸ MACD(12,26,9)\n"
+            "  ▸ Bollinger Bands(20,2)\n"
+            "  ▸ Stochastic(14,3)\n"
+            "  ▸ Свечные паттерны (8 типов)\n"
+            "🎯 <b>Фильтр входа:</b> 3 из 6 блоков\n\n"
+            "{div}\n"
+            "💱 <b>OTC ПАРЫ (12 инструментов):</b>\n\n"
+            "{pairs}\n\n"
+            "{div}\n"
+            "⏱ <b>Таймфреймы:</b> 5с · 10с · 15с · 30с\n"
+            "⏰ <b>Режим:</b> ПН–ВС 24/7\n\n"
+            "{div}\n"
+            "📦 <b>Тарифы:</b>\n"
+            "  ⬜ FREE — 25 сигналов в день\n"
+            "  🔵 JUNIOR — 50 сигналов в день  |  100$ / 7 дней\n"
+            "  🟣 PRO — 100 сигналов в день  |  200$ / 7 дней\n\n"
+            "{div}\n"
+            "⚠️ <i>Торговля бинарными опционами несёт риски. "
+            "Сигналы носят исключительно информационный характер. Всегда соблюдайте манименеджмент.</i>"
+        ),
+
+        # LOT CALCULATOR
         "lot_calc_enter": (
             "🧮 <b>КАЛЬКУЛЯТОР ЛОТА</b>\n"
             "{div}\n\n"
             "Введите ваш <b>баланс в долларах</b>:\n\n"
-            "<i>Минимум: 50$  |  Пример: 100 или 500</i>"
+            "<i>Минимум: 50$  |  Пример: 100 или 500</i>\n\n"
+            "💡 <i>Калькулятор покажет оптимальный размер сделки\nдля грамотного манименеджмента.</i>"
         ),
         "lot_calc_invalid": (
             "❌ Введите корректную сумму (только цифры, > 0).\n"
@@ -158,113 +250,118 @@ TEXTS = {
 
         # ACTIVATE ACCESS
         "vip_already": (
-            "✅ <b>Доступ уже активен</b>\n"
+            "✅ <b>VIP ЛИЦЕНЗИЯ АКТИВНА</b>\n"
             "{div}\n"
-            "Все функции бота разблокированы. Жми ⚡ <b>Получить сигнал</b>!"
+            "Все модули терминала разблокированы."
         ),
         "vip_activate": (
-            "🔐 <b>КАК АКТИВИРОВАТЬ ДОСТУП</b>\n"
+            "💎 <b>АКТИВАЦИЯ VIP ЛИЦЕНЗИИ</b>\n"
             "{div}\n\n"
-            "Всего 3 шага:\n\n"
-            "1️⃣ <b>Зарегистрируйся на Pocket Option:</b>\n"
-            "   🌍 Весь мир: <a href='https://u3.shortink.io/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Открыть Pocket Option</a>\n"
-            "   🇷🇺 Для РФ/СНГ: <a href='https://po-ru4.click/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Зеркало для РФ</a>\n\n"
-            "2️⃣ <b>Пополни счёт</b> от <b>$50</b>\n\n"
-            "3️⃣ <b>Отправь свой ID</b> — кнопка ниже 👇\n\n"
+            "📋 <b>3 простых шага:</b>\n\n"
+            "1️⃣ <b>Зарегистрируйте аккаунт:</b>\n"
+            "   🌍 Global: <a href='https://u3.shortink.io/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Pocket Option (Official Gateway)</a>\n"
+            "   🇷🇺 RU/СНГ: <a href='https://po-ru4.click/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Pocket Option (Зеркало)</a>\n\n"
+            "2️⃣ <b>Пополните депозит</b> от <b>$50</b>\n\n"
+            "3️⃣ <b>Отправьте ваш ID</b> с помощью кнопки ниже\n\n"
             "{div}\n"
             "🎁 <b>+60% бонус</b> к депозиту при регистрации по нашей ссылке!\n\n"
-            "⚠️ Аккаунт должен быть создан именно по нашей ссылке.\n\n"
-            "⏳ <i>Активация занимает несколько минут после отправки ID.</i>"
+            "⚠️ <b>Важно:</b> аккаунт должен быть зарегистрирован по нашей ссылке. "
+            "Если нет — создайте новый строго по ссылке выше.\n\n"
+            "🔐 <i>Активация в течение нескольких минут после верификации.</i>"
         ),
 
         # SUPPORT
         "support_msg": (
-            "🆘 <b>Поддержка</b>\n"
+            "🆘 <b>ПОДДЕРЖКА</b>\n"
             "{div}\n\n"
-            "Напиши свой вопрос одним сообщением — мы передадим его администратору.\n\n"
-            "💬 <b>Частые вопросы:</b>\n"
-            "▸ Как активировать? → кнопка «🔐 Активировать доступ»\n"
-            "▸ Где найти ID Pocket Option? → Аккаунт → Профиль\n"
-            "▸ Когда сбрасывается лимит? → в 00:00 по МСК\n\n"
-            "✍️ <b>Напиши свой вопрос:</b>"
+            "Опишите вашу проблему одним сообщением — мы перешлём её администратору.\n\n"
+            "💬 <b>FAQ:</b>\n"
+            "▸ Активация → «🔐 Активировать доступ»\n"
+            "▸ Pocket Option ID → Мой аккаунт → Профиль\n"
+            "▸ Лимит сигналов сбрасывается в 00:00 МСК\n"
+            "▸ Терминал работает 24/7\n\n"
+            "✍️ <b>Напишите ваш вопрос:</b>"
         ),
         "support_sent": (
-            "✅ <b>Вопрос отправлен!</b>\n"
+            "✅ <b>Запрос получен!</b>\n"
             "Ответим в течение 30 минут."
         ),
 
         # SEND PO ID
         "ask_id": (
-            "🔢 <b>Верификация аккаунта</b>\n"
+            "🔢 <b>ВЕРИФИКАЦИЯ АККАУНТА</b>\n"
             "{div}\n\n"
-            "Введи свой <b>числовой ID с Pocket Option</b>:\n\n"
-            "📍 <i>Где найти: Pocket Option → Мой аккаунт → Профиль</i>\n\n"
+            "Введите ваш <b>числовой ID профиля Pocket Option</b>:\n\n"
+            "📍 <i>Где найти: Pocket Option → Аккаунт → Профиль</i>\n\n"
             "⌨️ <b>Только цифры:</b>"
         ),
         "id_invalid": (
-            "❌ Введи <b>только цифры</b>.\n"
+            "❌ <b>Ошибка.</b> Введите <b>только цифры</b>.\n"
             "<i>Пример: 12345678</i>"
         ),
         "id_sent": (
-            "⏳ <b>Заявка отправлена!</b>\n"
+            "⏳ <b>ЗАЯВКА ОТПРАВЛЕНА</b>\n"
             "{div}\n\n"
-            "🆔 Твой Pocket Option ID: <code>{po_id}</code>\n\n"
-            "Ожидай активации — обычно занимает несколько минут."
+            "🆔 Pocket Option ID: <code>{po_id}</code>\n\n"
+            "Пожалуйста, ожидайте верификации. Активация занимает несколько минут."
         ),
 
         # VIP ACTIVATED (sent to user by admin)
         "vip_granted": (
-            "🚀 <b>Доступ активирован!</b>\n"
+            "🚀 <b>VIP ДОСТУП АКТИВИРОВАН!</b>\n"
             "{div}\n\n"
-            "✅ Аккаунт верифицирован. Все функции разблокированы.\n\n"
-            "👉 Нажми <b>⚡ Получить сигнал</b> — и поехали!\n\n"
+            "✅ Аккаунт верифицирован. Все модули разблокированы.\n\n"
+            "📊 Нажмите <b>«📊 Торговая Панель»</b>\n"
+            "⚡ Или сразу к <b>«⚡ Получить Сигнал»</b>\n\n"
             "<i>Прибыльных сделок! 📈</i>"
         ),
         "access_revoked": (
-            "🛑 <b>Доступ отозван</b>\n"
+            "🛑 <b>ДОСТУП ОТОЗВАН</b>\n"
             "{div}\n\n"
-            "Администратор отозвал вашу лицензию.\n"
-            "По вопросам: /help"
+            "VIP лицензия отозвана администратором.\n"
+            "Обратитесь в поддержку: /help"
         ),
 
-        # TRADING PANEL / SIGNAL — ОБЪЕДИНЕНО
-        "signal_panel": (
-            "⚡ <b>ПОЛУЧИТЬ СИГНАЛ</b>\n"
+        # TRADING PANEL
+        "trading_panel": (
+            "📊 <b>ТОРГОВАЯ ПАНЕЛЬ</b>\n"
             "{div}\n\n"
             "  📡 {session}\n"
-            "  🕐 {time} МСК\n\n"
-            "Шаг 1 — выбери <b>валютную пару:</b>"
+            "  🕐 {time} · 12 OTC пар\n\n"
+            "👇 <b>Шаг 1 из 2:</b> Выберите <b>валютную пару</b>"
         ),
-        "session_asian": "🌏 Азиатская сессия · умеренная волатильность",
-        "session_eu": "🌍 Европейская сессия · высокая ликвидность",
-        "session_us": "🌎 Американская сессия · максимальный объём",
-        "session_night": "🌙 Ночная сессия · осторожно, низкий объём",
-        "pair_selected": "✅ Пара: <b>{pair}</b>\n\nШаг 2 — выбери <b>время экспирации:</b>",
+        "session_asian": "🌏 Азиатская · умеренная волатильность",
+        "session_eu": "🌍 Европейская · высокая ликвидность",
+        "session_us": "🌎 Американская · максимальный объём",
+        "session_night": "🌙 Ночная · осторожно, низкий объём",
+        "pair_selected": "✅ Пара: <b>{pair}</b>\n\n👇 <b>Шаг 2 из 2:</b> Выберите <b>время экспирации</b>",
         "time_selected": (
-            "✅ <b>Всё готово!</b>\n"
+            "⚙️ <b>ВСЁ ГОТОВО!</b>\n"
             "{div}\n\n"
             "  Пара:       <b>{pair}</b>\n"
             "  Экспирация: <b>{time}</b>\n\n"
-            "👇 Нажми кнопку ниже, чтобы получить сигнал"
+            "✅ Теперь нажмите <b>«⚡ Получить Сигнал»</b>"
         ),
         "no_pair_selected": (
-            "⚠️ <b>Сначала выбери пару!</b>\n\n"
-            "Нажми <b>⚡ Получить сигнал</b> и следуй шагам."
+            "⚠️ <b>Пара не выбрана!</b>\n\n"
+            "Сначала откройте <b>«📊 Торговая Панель»</b>,\n"
+            "выберите пару → затем время экспирации.\n\n"
+            "<i>Только после этого сигнал будет доступен.</i>"
         ),
         "no_time_selected": (
-            "⚠️ <b>Выбери время экспирации</b>\n\n"
+            "⚠️ <b>Время не выбрано!</b>\n\n"
             "Пара: <b>{pair}</b>\n\n"
-            "Выбери <b>экспирацию:</b>"
+            "👇 Выберите <b>экспирацию:</b>"
         ),
         "select_pair_first": (
-            "⚠️ Сначала выбери пару.\n"
-            "Нажми <b>⚡ Получить сигнал</b>."
+            "⚠️ Сначала выберите пару.\n"
+            "Нажмите <b>«📊 Торговая Панель»</b>."
         ),
 
         # SIGNAL
         "analysis_header": "⚡ АНАЛИЗ РЫНКА",
         "analysis_frames": [
-            ("⬛⬛⬛⬛⬛  0%",   "Подключение к серверу..."),
+            ("⬛⬛⬛⬛⬛  0%",   "Подключение к терминалу..."),
             ("🟩🟩⬛⬛⬛  40%",  "RSI · EMA · MACD..."),
             ("🟩🟩🟩🟩⬛  80%",  "BB · Stoch · паттерны..."),
             ("🟩🟩🟩🟩🟩  100%", "Сигнал сформирован ✅"),
@@ -279,7 +376,7 @@ TEXTS = {
         "signal_last": "<b>⚠️ Последний сигнал на сегодня!</b>",
         "signal_low": "<i>Осталось: <b>{n}</b> сигналов</i>",
         "signal_counter": "<i>{used} / {limit} · осталось {left}</i>",
-        "signal_footer": "<i>⚡ Ставь 1–3% от баланса на сделку</i>",
+        "signal_footer": "<i>⚡ 1–3% от баланса на сделку</i>",
         "pro_session_label": "Сессия",
         "pro_volatility_label": "Волатильность",
         "trend_label": "Тренд",
@@ -291,27 +388,28 @@ TEXTS = {
             "Контртренд — требуется дополнительная осторожность",
         ],
 
-        # REPEAT SIGNAL BUTTON
-        "btn_repeat_signal": "🔄 Новый сигнал",
-        "btn_change_pair": "📊 Сменить пару",
+        # SIGNAL HINT (shown below signal for beginners)
+        "signal_hint": (
+            "\n💡 <i>CALL = ставить ВВЕРХ · PUT = ставить ВНИЗ</i>"
+        ),
 
         # LIMIT REACHED
         "limit_free": (
-            "🛑 <b>Лимит на сегодня исчерпан</b>\n"
+            "🛑 <b>ДНЕВНОЙ ЛИМИТ ИСЧЕРПАН</b>\n"
             "{div}\n\n"
-            "Ты использовал все <b>{limit}</b> бесплатных сигналов.\n\n"
-            "💡 Хочешь больше? Возьми подписку:\n\n"
-            "🔵 <b>JUNIOR</b> — 50 сигналов в день  |  <b>100$</b>\n"
-            "🟣 <b>PRO</b>    — 100 сигналов в день  |  <b>200$</b>\n\n"
-            "⏳ <i>Или жди сброса в 00:00 МСК</i>"
+            "Использовано <b>{limit} / {limit}</b> бесплатных сигналов.\n\n"
+            "💡 Получите больше сигналов с подпиской:\n\n"
+            "🔵 <b>JUNIOR</b> — <b>50 сигналов в день</b>  |  <b>100$</b>\n"
+            "🟣 <b>PRO</b>    — <b>100 сигналов в день</b>  |  <b>200$</b>\n\n"
+            "⏳ <i>Или дождитесь сброса в 00:00 МСК</i>"
         ),
         "limit_paid": (
-            "🛑 <b>Лимит исчерпан</b>\n"
+            "🛑 <b>ЛИМИТ ИСЧЕРПАН</b>\n"
             "{div}\n\n"
-            "Тариф <b>{plan}</b>: использовано <b>{used} / {limit}</b> сигналов.\n\n"
-            "Лимит защищает от торговли на эмоциях.\n"
-            "Возвращайся завтра — сброс в <b>00:00 МСК</b>.\n\n"
-            "💡 Хочешь больше? Смени тариф в <b>«💎 Подписка»</b>"
+            "Тариф <b>{plan}</b>: <b>{used} / {limit}</b> сигналов.\n\n"
+            "Лимит защищает от эмоциональной торговли.\n"
+            "Возвращайтесь завтра — сброс в <b>00:00 МСК</b>.\n\n"
+            "💡 Хотите больше? Смените тариф в <b>«💎 Подписка»</b>"
         ),
 
         # SUBSCRIPTION
@@ -324,7 +422,7 @@ TEXTS = {
             "{days_left}"
             "{renew_block}"
             "\n{div}\n"
-            "📦 <b>Доступные тарифы:</b>\n\n"
+            "📦 <b>Тарифы:</b>\n\n"
             "⬜ <b>FREE</b>   — 25 сигналов в день  <i>(бесплатно)</i>\n"
             "🔵 <b>JUNIOR</b> — 50 сигналов в день  <i>100$ / 7 дней</i>\n"
             "🟣 <b>PRO</b>    — 100 сигналов в день  <i>200$ / 7 дней</i>\n\n"
@@ -400,9 +498,9 @@ TEXTS = {
             "  Лимит:    <b>{limit} сигналов в день</b>\n"
             "{renew_note}"
             "{div}\n"
-            "1️⃣ Нажми <b>«💳 Оплатить»</b>\n"
+            "1️⃣ Нажмите <b>«💳 Оплатить»</b>\n"
             "2️⃣ Завершите оплату в USDT\n"
-            "3️⃣ Нажми <b>«✅ Проверить оплату»</b>\n\n"
+            "3️⃣ Нажмите <b>«✅ Проверить оплату»</b>\n\n"
             "<i>⚡ Мгновенная активация после подтверждения.</i>"
         ),
         "invoice_action_purchase": "ПОКУПКА",
@@ -417,13 +515,13 @@ TEXTS = {
             "  Лимит:   <b>{limit} сигналов в день</b>\n"
             "  Истекает: <b>{expires}</b>\n\n"
             "{div}\n"
-            "🚀 Терминал активирован!\n"
-            "<i>Прибыльных сделок! 📈</i>"
+            "🚀 <b>Терминал активирован!</b>\n"
+            "<i>Прибыльных сделок и зелёного баланса! 📈</i>"
         ),
 
         # PROFILE
         "profile": (
-            "👤 <b>МОЙ ПРОФИЛЬ</b>\n"
+            "👤 <b>ПРОФИЛЬ</b>\n"
             "{div}\n\n"
             "  {name}  ·  <code>{uid}</code>\n\n"
             "{sdiv}\n"
@@ -440,10 +538,12 @@ TEXTS = {
             "  Всего: <b>{total}</b>  ·  Сегодня:\n"
             "  <code>[{daily_bar}]</code> <b>{daily} / {limit}</b>\n\n"
             "{div}\n"
-            "🔐 Лицензия: {license}"
+            "🔐 Лицензия: {license}\n\n"
+            "<i>Рассчитайте оптимальный лот:</i>"
         ),
         "profile_license_active": "<b>АКТИВНА ✅</b>",
         "profile_license_inactive": "<b>❌ Нет доступа</b>",
+        "btn_calc_lot_inline": "🧮 Рассчитать лот",
         "profile_expires_lifetime": "∞ Бессрочно",
         "profile_days_remaining": "\n  Осталось: <code>[{bar}]</code> <b>{days} дней</b>",
         "rank_to_next": "\n  До <b>{title}</b>: <b>{n}</b> сигналов",
@@ -523,26 +623,50 @@ TEXTS = {
         "choose_lang": "🌐 Choose interface language:\n\n🇷🇺 Русский  |  🇬🇧 English",
         "lang_set": "🇬🇧 Language set: <b>English</b>",
 
-        # START — simple and clear welcome
+        # START
         "start_header": (
-            "✦ ✦ ✦  AI TRADING BOT  ✦ ✦ ✦\n\n"
-            "👋 Hey! I help traders get <b>trading signals</b> for <b>Pocket Option</b>.\n\n"
-            "⚡ <b>What I do:</b>\n"
-            "  → Analyze the market in seconds\n"
-            "  → Give a signal: UP or DOWN\n"
-            "  → Show AI confidence in %\n"
-            "  → Work 24/7 without breaks\n\n"
-            "📊 <b>Active traders right now:</b> <b>{users}</b>\n"
-            "🎯 <b>Signal accuracy:</b> 88–96%\n\n"
-            "🕐 {time} MSK\n\n"
-            "👇 <b>Press the button below to start:</b>"
+            "┌─────────────────────────┐\n"
+            "│  🖥  AI TRADING TERMINAL  │\n"
+            "│     OTC PRO v4.0        │\n"
+            "└─────────────────────────┘\n\n"
+            "⚡ <b>Professional signal system</b> for Pocket Option OTC market.\n\n"
+            "🧠 <b>Smart Precision Engine:</b>\n"
+            "▸ 12 OTC pairs with country flags\n"
+            "▸ Timeframes: 5s / 10s / 15s / 30s\n"
+            "▸ 6 analysis blocks (RSI + EMA + MACD + BB + Stoch + patterns)\n"
+            "▸ AI confidence: 78–96%\n\n"
+            "👥 Traders: <b>{users}</b>\n"
+            "📡 WinRate: <b>88–96%</b>  |  🟢 <b>24/7</b>\n"
+            "🕐 {time}"
+        ),
+
+        # BEGINNER WELCOME
+        "welcome_guide": (
+            "👋 <b>Welcome!</b>\n"
+            "{div}\n\n"
+            "Here's how to get started in <b>3 steps:</b>\n\n"
+            "1️⃣ Press <b>«🔐 Activate Access»</b>\n"
+            "   → Register on Pocket Option\n"
+            "   → Deposit from $50\n"
+            "   → Send your ID\n\n"
+            "2️⃣ Open <b>«📊 Trading Panel»</b>\n"
+            "   → Select a currency pair\n"
+            "   → Select expiration time\n\n"
+            "3️⃣ Press <b>«⚡ Get Signal»</b>\n"
+            "   → AI analyses the market\n"
+            "   → Get your entry point (CALL/PUT)\n\n"
+            "{div}\n"
+            "❓ Any questions? Press <b>«🆘 Support»</b>"
         ),
 
         # MENU BUTTONS
-        "btn_signal": "⚡ Get Signal",
+        "btn_trading_panel": "📊 Trading Panel",
+        "btn_get_signal": "⚡ Get Signal",
         "btn_profile": "👤 Profile",
         "btn_stats": "📈 Statistics",
         "btn_subscription": "💎 Subscription",
+        "btn_about": "🚀 About",
+        "btn_lot_calc": "🧮 Lot Calculator",
         "btn_activate": "🔐 Activate Access",
         "btn_support": "🆘 Support",
         "btn_back": "⬅️ Back",
@@ -551,10 +675,43 @@ TEXTS = {
 
         # ACCESS RESTRICTED
         "access_restricted": (
-            "🔒 <b>Access Restricted</b>\n"
+            "🔒 <b>ACCESS RESTRICTED</b>\n"
+            "{div}\n\n"
+            "This section is available to verified traders only.\n\n"
+            "📋 <b>How to get access:</b>\n"
+            "▸ Press <b>«🔐 Activate Access»</b>\n"
+            "▸ Register on Pocket Option via our link\n"
+            "▸ Deposit from $50\n"
+            "▸ Send your ID — activation within minutes ✅"
+        ),
+
+        # ABOUT
+        "about": (
+            "🤖 <b>AI TRADING TERMINAL — OTC PRO v4.0</b>\n"
+            "{div}\n\n"
+            "📡 <b>Platform:</b> Pocket Option (OTC)\n\n"
+            "🧠 <b>Smart Precision Engine v4:</b>\n"
+            "  ▸ RSI(14)\n"
+            "  ▸ EMA(9/21) crossover + trend\n"
+            "  ▸ MACD(12,26,9)\n"
+            "  ▸ Bollinger Bands(20,2)\n"
+            "  ▸ Stochastic(14,3)\n"
+            "  ▸ Candlestick patterns (8 types)\n"
+            "🎯 <b>Entry filter:</b> 3 of 6 blocks\n\n"
             "{div}\n"
-            "To use the bot — activate access first.\n\n"
-            "Press 👉 <b>«🔐 Activate Access»</b>"
+            "💱 <b>OTC PAIRS (12 instruments):</b>\n\n"
+            "{pairs}\n\n"
+            "{div}\n"
+            "⏱ <b>Timeframes:</b> 5s · 10s · 15s · 30s\n"
+            "⏰ <b>Mode:</b> MON–SUN 24/7\n\n"
+            "{div}\n"
+            "📦 <b>Plans:</b>\n"
+            "  ⬜ FREE — 25 signals per day\n"
+            "  🔵 JUNIOR — 50 signals per day  |  100$ / 7 days\n"
+            "  🟣 PRO — 100 signals per day  |  200$ / 7 days\n\n"
+            "{div}\n"
+            "⚠️ <i>Trading binary options involves risks. "
+            "Signals are for informational purposes only. Always use proper money management.</i>"
         ),
 
         # LOT CALCULATOR
@@ -562,7 +719,8 @@ TEXTS = {
             "🧮 <b>LOT CALCULATOR</b>\n"
             "{div}\n\n"
             "Enter your <b>balance in dollars</b>:\n\n"
-            "<i>Minimum: 50$  |  Example: 100 or 500</i>"
+            "<i>Minimum: 50$  |  Example: 100 or 500</i>\n\n"
+            "💡 <i>The calculator will show the optimal trade size\nfor proper money management.</i>"
         ),
         "lot_calc_invalid": (
             "❌ Enter a valid amount (numbers only, > 0).\n"
@@ -607,113 +765,118 @@ TEXTS = {
 
         # ACTIVATE ACCESS
         "vip_already": (
-            "✅ <b>Access is already active</b>\n"
+            "✅ <b>VIP LICENSE ACTIVE</b>\n"
             "{div}\n"
-            "All bot features are unlocked. Press ⚡ <b>Get Signal</b>!"
+            "All terminal modules are unlocked."
         ),
         "vip_activate": (
-            "🔐 <b>HOW TO ACTIVATE ACCESS</b>\n"
+            "💎 <b>VIP LICENSE ACTIVATION</b>\n"
             "{div}\n\n"
-            "Just 3 steps:\n\n"
-            "1️⃣ <b>Register on Pocket Option:</b>\n"
-            "   🌍 Global: <a href='https://u3.shortink.io/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Open Pocket Option</a>\n"
-            "   🇷🇺 RU/CIS: <a href='https://po-ru4.click/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Mirror for RU</a>\n\n"
+            "📋 <b>3 simple steps:</b>\n\n"
+            "1️⃣ <b>Register an account:</b>\n"
+            "   🌍 Global: <a href='https://u3.shortink.io/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Pocket Option (Official Gateway)</a>\n"
+            "   🇷🇺 RU/CIS: <a href='https://po-ru4.click/register?utm_campaign=845784&utm_source=affiliate&utm_medium=sr&a=e0FkuUtf0CHZA5&al=1760257&ac=bot&cid=954756&code=LXJ558'>Pocket Option (Mirror)</a>\n\n"
             "2️⃣ <b>Top up your deposit</b> from <b>$50</b>\n\n"
-            "3️⃣ <b>Send your ID</b> — button below 👇\n\n"
+            "3️⃣ <b>Send your ID</b> using the button below\n\n"
             "{div}\n"
             "🎁 <b>+60% bonus</b> on deposit when registering via our link!\n\n"
-            "⚠️ Account must be created via our link.\n\n"
-            "⏳ <i>Activation takes a few minutes after sending ID.</i>"
+            "⚠️ <b>Important:</b> your account must be registered via our link. "
+            "If not, create a new one strictly via the link above.\n\n"
+            "🔐 <i>Activation within a few minutes after verification.</i>"
         ),
 
         # SUPPORT
         "support_msg": (
-            "🆘 <b>Support</b>\n"
+            "🆘 <b>SUPPORT</b>\n"
             "{div}\n\n"
-            "Write your question in one message — we'll forward it to the admin.\n\n"
+            "Describe your issue in one message — we'll forward it to the admin.\n\n"
             "💬 <b>FAQ:</b>\n"
-            "▸ How to activate? → «🔐 Activate Access» button\n"
-            "▸ Where to find Pocket Option ID? → Account → Profile\n"
-            "▸ When does limit reset? → at 00:00 MSK\n\n"
+            "▸ Activation → «🔐 Activate Access»\n"
+            "▸ Pocket Option ID → My Account → Profile\n"
+            "▸ Signal limit resets at 00:00 MSK\n"
+            "▸ Terminal operates 24/7\n\n"
             "✍️ <b>Write your question:</b>"
         ),
         "support_sent": (
-            "✅ <b>Question sent!</b>\n"
+            "✅ <b>Request received!</b>\n"
             "We'll respond within 30 minutes."
         ),
 
         # SEND PO ID
         "ask_id": (
-            "🔢 <b>Account Verification</b>\n"
+            "🔢 <b>ACCOUNT VERIFICATION</b>\n"
             "{div}\n\n"
             "Enter your <b>numeric Pocket Option profile ID</b>:\n\n"
-            "📍 <i>Where to find: Pocket Option → My Account → Profile</i>\n\n"
+            "📍 <i>Where to find it: Pocket Option → Account → Profile</i>\n\n"
             "⌨️ <b>Numbers only:</b>"
         ),
         "id_invalid": (
-            "❌ Enter <b>numbers only</b>.\n"
+            "❌ <b>Error.</b> Enter <b>numbers only</b>.\n"
             "<i>Example: 12345678</i>"
         ),
         "id_sent": (
-            "⏳ <b>Application sent!</b>\n"
+            "⏳ <b>APPLICATION SENT</b>\n"
             "{div}\n\n"
-            "🆔 Your Pocket Option ID: <code>{po_id}</code>\n\n"
-            "Wait for activation — usually takes a few minutes."
+            "🆔 Pocket Option ID: <code>{po_id}</code>\n\n"
+            "Please wait for verification. Activation takes a few minutes."
         ),
 
         # VIP ACTIVATED
         "vip_granted": (
-            "🚀 <b>Access Activated!</b>\n"
+            "🚀 <b>VIP ACCESS ACTIVATED!</b>\n"
             "{div}\n\n"
-            "✅ Account verified. All features unlocked.\n\n"
-            "👉 Press <b>⚡ Get Signal</b> — let's go!\n\n"
+            "✅ Account verified. All modules unlocked.\n\n"
+            "📊 Press <b>«📊 Trading Panel»</b>\n"
+            "⚡ Or go straight to <b>«⚡ Get Signal»</b>\n\n"
             "<i>Profitable trades! 📈</i>"
         ),
         "access_revoked": (
-            "🛑 <b>Access Revoked</b>\n"
+            "🛑 <b>ACCESS REVOKED</b>\n"
             "{div}\n\n"
-            "Your license was revoked by the administrator.\n"
+            "VIP license has been revoked by the administrator.\n"
             "Contact support: /help"
         ),
 
-        # TRADING PANEL / SIGNAL — MERGED
-        "signal_panel": (
-            "⚡ <b>GET SIGNAL</b>\n"
+        # TRADING PANEL
+        "trading_panel": (
+            "📊 <b>TRADING PANEL</b>\n"
             "{div}\n\n"
             "  📡 {session}\n"
-            "  🕐 {time} MSK\n\n"
-            "Step 1 — choose a <b>currency pair:</b>"
+            "  🕐 {time} · 12 OTC pairs\n\n"
+            "👇 <b>Step 1 of 2:</b> Select a <b>currency pair</b>"
         ),
-        "session_asian": "🌏 Asian session · moderate volatility",
-        "session_eu": "🌍 European session · high liquidity",
-        "session_us": "🌎 American session · maximum volume",
-        "session_night": "🌙 Night session · caution, low volume",
-        "pair_selected": "✅ Pair: <b>{pair}</b>\n\nStep 2 — choose <b>expiration time:</b>",
+        "session_asian": "🌏 Asian · moderate volatility",
+        "session_eu": "🌍 European · high liquidity",
+        "session_us": "🌎 American · maximum volume",
+        "session_night": "🌙 Night · caution, low volume",
+        "pair_selected": "✅ Pair: <b>{pair}</b>\n\n👇 <b>Step 2 of 2:</b> Select <b>expiration time</b>",
         "time_selected": (
-            "✅ <b>All set!</b>\n"
+            "⚙️ <b>ALL SET!</b>\n"
             "{div}\n\n"
             "  Pair:       <b>{pair}</b>\n"
             "  Expiration: <b>{time}</b>\n\n"
-            "👇 Press the button below to get the signal"
+            "✅ Now press <b>«⚡ Get Signal»</b>"
         ),
         "no_pair_selected": (
-            "⚠️ <b>Select a pair first!</b>\n\n"
-            "Press <b>⚡ Get Signal</b> and follow the steps."
+            "⚠️ <b>No pair selected!</b>\n\n"
+            "First open <b>«📊 Trading Panel»</b>,\n"
+            "select a pair → then expiration time.\n\n"
+            "<i>Only after that the signal will be available.</i>"
         ),
         "no_time_selected": (
-            "⚠️ <b>Choose expiration time</b>\n\n"
+            "⚠️ <b>No time selected!</b>\n\n"
             "Pair: <b>{pair}</b>\n\n"
-            "Select <b>expiration:</b>"
+            "👇 Select <b>expiration:</b>"
         ),
         "select_pair_first": (
-            "⚠️ Select a pair first.\n"
-            "Press <b>⚡ Get Signal</b>."
+            "⚠️ Please select a pair first.\n"
+            "Press <b>«📊 Trading Panel»</b>."
         ),
 
         # SIGNAL
         "analysis_header": "⚡ MARKET ANALYSIS",
         "analysis_frames": [
-            ("⬛⬛⬛⬛⬛  0%",   "Connecting to server..."),
+            ("⬛⬛⬛⬛⬛  0%",   "Connecting to terminal..."),
             ("🟩🟩⬛⬛⬛  40%",  "RSI · EMA · MACD..."),
             ("🟩🟩🟩🟩⬛  80%",  "BB · Stoch · patterns..."),
             ("🟩🟩🟩🟩🟩  100%", "Signal formed ✅"),
@@ -728,7 +891,7 @@ TEXTS = {
         "signal_last": "<b>⚠️ Last signal for today!</b>",
         "signal_low": "<i>Remaining: <b>{n}</b> signals</i>",
         "signal_counter": "<i>{used} / {limit} · {left} remaining</i>",
-        "signal_footer": "<i>⚡ Risk 1–3% of balance per trade</i>",
+        "signal_footer": "<i>⚡ 1–3% of balance per trade</i>",
         "pro_session_label": "Session",
         "pro_volatility_label": "Volatility",
         "trend_label": "Trend",
@@ -740,24 +903,25 @@ TEXTS = {
             "Counter-trend — extra caution advised",
         ],
 
-        # REPEAT SIGNAL BUTTON
-        "btn_repeat_signal": "🔄 New Signal",
-        "btn_change_pair": "📊 Change Pair",
+        # SIGNAL HINT
+        "signal_hint": (
+            "\n💡 <i>CALL = bet UP · PUT = bet DOWN</i>"
+        ),
 
         # LIMIT REACHED
         "limit_free": (
-            "🛑 <b>Daily limit reached</b>\n"
+            "🛑 <b>DAILY LIMIT REACHED</b>\n"
             "{div}\n\n"
-            "You've used all <b>{limit}</b> free signals.\n\n"
-            "💡 Want more? Get a subscription:\n\n"
-            "🔵 <b>JUNIOR</b> — 50 signals per day  |  <b>100$</b>\n"
-            "🟣 <b>PRO</b>    — 100 signals per day  |  <b>200$</b>\n\n"
-            "⏳ <i>Or wait for reset at 00:00 MSK</i>"
+            "Used <b>{limit} / {limit}</b> free signals.\n\n"
+            "💡 Get more signals with a subscription:\n\n"
+            "🔵 <b>JUNIOR</b> — <b>50 signals per day</b>  |  <b>100$</b>\n"
+            "🟣 <b>PRO</b>    — <b>100 signals per day</b>  |  <b>200$</b>\n\n"
+            "⏳ <i>Or wait for the reset at 00:00 MSK</i>"
         ),
         "limit_paid": (
-            "🛑 <b>Limit Reached</b>\n"
+            "🛑 <b>LIMIT REACHED</b>\n"
             "{div}\n\n"
-            "Plan <b>{plan}</b>: used <b>{used} / {limit}</b> signals.\n\n"
+            "Plan <b>{plan}</b>: <b>{used} / {limit}</b> signals.\n\n"
             "The limit protects against emotional trading.\n"
             "Come back tomorrow — resets at <b>00:00 MSK</b>.\n\n"
             "💡 Want more? Change your plan in <b>«💎 Subscription»</b>"
@@ -773,7 +937,7 @@ TEXTS = {
             "{days_left}"
             "{renew_block}"
             "\n{div}\n"
-            "📦 <b>Available plans:</b>\n\n"
+            "📦 <b>Plans:</b>\n\n"
             "⬜ <b>FREE</b>   — 25 signals per day  <i>(free)</i>\n"
             "🔵 <b>JUNIOR</b> — 50 signals per day  <i>100$ / 7 days</i>\n"
             "🟣 <b>PRO</b>    — 100 signals per day  <i>200$ / 7 days</i>\n\n"
@@ -866,13 +1030,13 @@ TEXTS = {
             "  Limit:   <b>{limit} signals per day</b>\n"
             "  Expires: <b>{expires}</b>\n\n"
             "{div}\n"
-            "🚀 Terminal activated!\n"
+            "🚀 <b>Terminal activated!</b>\n"
             "<i>Profitable trades and a green balance! 📈</i>"
         ),
 
         # PROFILE
         "profile": (
-            "👤 <b>MY PROFILE</b>\n"
+            "👤 <b>PROFILE</b>\n"
             "{div}\n\n"
             "  {name}  ·  <code>{uid}</code>\n\n"
             "{sdiv}\n"
@@ -889,10 +1053,12 @@ TEXTS = {
             "  Total: <b>{total}</b>  ·  Today:\n"
             "  <code>[{daily_bar}]</code> <b>{daily} / {limit}</b>\n\n"
             "{div}\n"
-            "🔐 License: {license}"
+            "🔐 License: {license}\n\n"
+            "<i>Calculate your optimal lot:</i>"
         ),
         "profile_license_active": "<b>ACTIVE ✅</b>",
         "profile_license_inactive": "<b>❌ No access</b>",
+        "btn_calc_lot_inline": "🧮 Calculate Lot",
         "profile_expires_lifetime": "∞ Lifetime",
         "profile_days_remaining": "\n  Remaining: <code>[{bar}]</code> <b>{days} days</b>",
         "rank_to_next": "\n  To <b>{title}</b>: <b>{n}</b> more signals",
@@ -911,14 +1077,14 @@ TEXTS = {
             "  Top pair:  <b>{best_pair}</b>\n"
             "  Peak:      <b>{peak_h}:00–{peak_h1}:00</b>\n\n"
             "{sdiv}\n"
-            "📈 <b>Activity (MSK):</b>\n\n"
+            "📈 <b>Activity (UTC):</b>\n\n"
             "{hourly}\n"
             "{sdiv}\n"
             "👥 Traders: <b>{users:,}</b>  ·  Active: <b>{active:,}</b>\n\n"
-            "<i>📅 {date} MSK</i>"
+            "<i>📅 {date} UTC</i>"
         ),
 
-        # ADMIN NOTIFY
+        # ADMIN NOTIFY (always in Russian for admin)
         "admin_new_app": (
             "🔔 <b>NEW VIP APPLICATION</b>\n"
             "━━━━━━━━━━━━━━━━━\n"
@@ -1041,6 +1207,7 @@ def db_get_user(user_id):
                 last_date   = today
                 db_update_user(user_id, daily=0, date=today)
 
+            # sync lang to memory
             lang = row.get('lang') or 'ru'
             user_lang[user_id] = lang
 
@@ -1295,39 +1462,26 @@ user_temp_data   = {}
 pending_users    = set()
 pending_support  = set()
 pending_lot_calc = set()
-pending_lang     = set()
+pending_lang     = set()   # users currently selecting language
 
-last_signal_request = {}
+last_signal_request = {}   # uid -> timestamp of last successful signal
 
-user_lang: dict[int, str] = {}
+# In-memory language cache (also persisted to DB)
+user_lang: dict[int, str] = {}   # uid -> "ru" | "en"
+
+# Track first-time users (shown welcome guide once after lang select)
+new_users: set[int] = set()
 
 # ════════════════════════════════════════════════
 #              KEYBOARDS (language-aware)
 # ════════════════════════════════════════════════
-
-# All possible back/menu button texts (both languages)
-BACK_TEXTS = {"⬅️ Back", "⬅️ Назад", "⬅️ Back / Назад", "⬅️ Menu", "⬅️ Меню"}
-
-# All possible "allowed without access" texts (both languages)
-ALLOWED_TEXTS = {
-    "🔐 Activate Access", "🔐 Активировать доступ",
-    "📩 Send Pocket Option ID", "📩 Отправить ID Pocket Option",
-    "⬅️ Back", "⬅️ Назад", "⬅️ Back / Назад",
-    "/start", "⬅️ Menu", "⬅️ Меню", "/vip", "/help",
-    "🆘 Support", "🆘 Поддержка",
-}
-
 def get_main_menu(has_access: bool, uid: int = 0):
-    """
-    Главное меню — упрощённое.
-    Убраны: «О боте», «Калькулятор лота».
-    Объединены: «Торговая панель» + «Получить сигнал» → одна кнопка «⚡ Получить сигнал».
-    """
     if uid and user_lang.get(uid) == "en":
         keyboard = [
-            [KeyboardButton(text="⚡ Get Signal")],
-            [KeyboardButton(text="👤 Profile"), KeyboardButton(text="📈 Statistics")],
-            [KeyboardButton(text="💎 Subscription")],
+            [KeyboardButton(text="📊 Trading Panel"), KeyboardButton(text="⚡ Get Signal")],
+            [KeyboardButton(text="👤 Profile"),        KeyboardButton(text="📈 Statistics")],
+            [KeyboardButton(text="💎 Subscription"),   KeyboardButton(text="🚀 About")],
+            [KeyboardButton(text="🧮 Lot Calculator")],
         ]
         row_bottom = []
         if not has_access:
@@ -1336,9 +1490,10 @@ def get_main_menu(has_access: bool, uid: int = 0):
         keyboard.append(row_bottom)
     else:
         keyboard = [
-            [KeyboardButton(text="⚡ Получить сигнал")],
-            [KeyboardButton(text="👤 Профиль"), KeyboardButton(text="📈 Статистика")],
-            [KeyboardButton(text="💎 Подписка")],
+            [KeyboardButton(text="📊 Торговая Панель"), KeyboardButton(text="⚡ Получить Сигнал")],
+            [KeyboardButton(text="👤 Профиль"),          KeyboardButton(text="📈 Статистика")],
+            [KeyboardButton(text="💎 Подписка"),          KeyboardButton(text="🚀 О боте")],
+            [KeyboardButton(text="🧮 Калькулятор лота")],
         ]
         row_bottom = []
         if not has_access:
@@ -1365,7 +1520,6 @@ def get_access_kb(uid: int = 0):
     )
 
 def get_pair_kb():
-    """Keyboard with all OTC pairs + back button."""
     rows_clean = []
     pair_list = list(pairs)
     for i in range(0, len(pair_list), 2):
@@ -1391,19 +1545,18 @@ time_kb = ReplyKeyboardMarkup(
 )
 
 def get_signal_kb(uid: int = 0):
-    """After signal is shown — quick actions."""
     if uid and user_lang.get(uid) == "en":
         return ReplyKeyboardMarkup(
             keyboard=[
-                [KeyboardButton(text="🔄 New Signal")],
-                [KeyboardButton(text="📊 Change Pair"), KeyboardButton(text="⬅️ Menu")]
+                [KeyboardButton(text="⚡ Get Signal")],
+                [KeyboardButton(text="📊 Trading Panel"), KeyboardButton(text="⬅️ Menu")]
             ],
             resize_keyboard=True
         )
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🔄 Новый сигнал")],
-            [KeyboardButton(text="📊 Сменить пару"), KeyboardButton(text="⬅️ Меню")]
+            [KeyboardButton(text="⚡ Получить Сигнал")],
+            [KeyboardButton(text="📊 Торговая Панель"), KeyboardButton(text="⬅️ Меню")]
         ],
         resize_keyboard=True
     )
@@ -1462,6 +1615,18 @@ lang_select_kb = InlineKeyboardMarkup(inline_keyboard=[
 #              MIDDLEWARE
 # ════════════════════════════════════════════════
 
+# All possible back/menu button texts (both languages)
+BACK_TEXTS = {"⬅️ Back", "⬅️ Назад", "⬅️ Back / Назад", "⬅️ Menu", "⬅️ Меню"}
+
+# All possible "allowed without access" texts (both languages)
+ALLOWED_TEXTS = {
+    "🔐 Activate Access", "🔐 Активировать доступ",
+    "📩 Send Pocket Option ID", "📩 Отправить ID Pocket Option",
+    "⬅️ Back", "⬅️ Назад", "⬅️ Back / Назад",
+    "/start", "⬅️ Menu", "⬅️ Меню", "/vip", "/help",
+    "🆘 Support", "🆘 Поддержка", "🚀 About", "🚀 О боте"
+}
+
 class AccessMiddleware(BaseMiddleware):
     async def __call__(self, handler, event, data):
         if isinstance(event, Message):
@@ -1498,17 +1663,31 @@ async def set_language(callback: CallbackQuery):
 
     u           = db_get_user(uid)
     total_users = db_get_total_users()
-    now_msk     = (datetime.utcnow() + timedelta(hours=3)).strftime("%d.%m.%Y %H:%M")
+
+    # Build time string: RU → MSK, EN → UTC
+    if lang == "en":
+        now_str = datetime.utcnow().strftime("%d.%m.%Y %H:%M") + " UTC"
+    else:
+        now_str = (datetime.utcnow() + timedelta(hours=3)).strftime("%d.%m.%Y %H:%M") + " МСК"
 
     start_text = TEXTS[lang]["start_header"].format(
         users=f"{total_users + 152:,}",
-        time=now_msk
+        time=now_str
     )
     await callback.message.answer(
         start_text,
         reply_markup=get_main_menu(u["has_access"], uid),
         parse_mode="HTML"
     )
+
+    # Show beginner welcome guide for first-time users
+    if uid in new_users:
+        new_users.discard(uid)
+        await callback.message.answer(
+            TEXTS[lang]["welcome_guide"].format(div=DIV),
+            parse_mode="HTML"
+        )
+
     await callback.answer()
 
 # ════════════════════════════════════════════════
@@ -1652,8 +1831,13 @@ async def process_check(callback: CallbackQuery):
 async def start(message: Message):
     uid = message.from_user.id
     db_update_user(uid, username=message.from_user.username)
-    db_get_user(uid)  # load lang
+    # Load lang from DB
+    db_get_user(uid)
 
+    # Mark as new user to show welcome guide after lang select
+    new_users.add(uid)
+
+    # Show language selection
     await message.answer(
         "🌐 <b>Choose language / Выберите язык</b>\n\n"
         "🇷🇺 Русский  |  🇬🇧 English",
@@ -1661,9 +1845,29 @@ async def start(message: Message):
         parse_mode="HTML"
     )
 
+@dp.message(F.text.in_({"🚀 About", "🚀 О боте"}))
+async def about_bot(message: Message):
+    uid  = message.from_user.id
+    lang = user_lang.get(uid, "ru")
+    t    = TEXTS[lang]
+    pairs_list = "\n".join([f"  ▸ {p}" for p in pairs])
+    text = t["about"].format(div=DIV, pairs=pairs_list)
+    await message.answer(text, parse_mode="HTML")
+
 # ════════════════════════════════════════════════
-#         🧮 LOT CALCULATOR (via inline button in profile)
+#         🧮 LOT CALCULATOR
 # ════════════════════════════════════════════════
+@dp.message(F.text.in_({"🧮 Lot Calculator", "🧮 Калькулятор лота"}))
+async def lot_calculator(message: Message):
+    uid  = message.from_user.id
+    lang = user_lang.get(uid, "ru")
+    pending_lot_calc.add(uid)
+    await message.answer(
+        TEXTS[lang]["lot_calc_enter"].format(div=DIV),
+        reply_markup=get_back_kb(uid),
+        parse_mode="HTML"
+    )
+
 @dp.message(lambda msg: msg.from_user.id in pending_lot_calc)
 async def process_lot_calc(message: Message):
     uid  = message.from_user.id
@@ -1789,6 +1993,7 @@ async def process_support_message(message: Message):
 
     username = message.from_user.username or "—"
     name     = message.from_user.full_name or "—"
+    # Admin always gets Russian
     await bot.send_message(
         ADMIN_ID,
         TEXTS["ru"]["admin_support_msg"].format(
@@ -1948,43 +2153,24 @@ async def admin_broadcast(message: Message):
         await message.answer(f"⚠️ Format: <code>/broadcast text</code>\n{e}", parse_mode="HTML")
 
 # ════════════════════════════════════════════════
-#   UNIFIED SIGNAL PANEL (Trading Panel + Signal merged)
-#   Triggered by: ⚡ Получить сигнал / ⚡ Get Signal
-#   Also triggered by: 📊 Сменить пару / 📊 Change Pair
+#              TRADING PANEL
 # ════════════════════════════════════════════════
-@dp.message(F.text.in_({
-    "⚡ Get Signal", "⚡ Получить сигнал",
-    "📊 Change Pair", "📊 Сменить пару"
-}))
-async def signal_panel(message: Message):
-    """Step 1: show session info + pair selection keyboard."""
+@dp.message(F.text.in_({"📊 Trading Panel", "📊 Торговая Панель"}))
+async def t_panel(message: Message):
     uid = message.from_user.id
     if not db_get_user(uid)["has_access"]:
         return
     lang = user_lang.get(uid, "ru")
     t    = TEXTS[lang]
 
-    # Clear previous pair/time selection when user explicitly opens panel
-    if message.text in {"⚡ Get Signal", "⚡ Получить сигнал",
-                        "📊 Change Pair", "📊 Сменить пару"}:
-        user_temp_data.pop(uid, None)
-
-    now_msk = datetime.utcnow() + timedelta(hours=3)
-    hour = now_msk.hour
-    if 3 <= hour < 10:
-        session_info = t["session_asian"]
-    elif 10 <= hour < 18:
-        session_info = t["session_eu"]
-    elif 18 <= hour < 23:
-        session_info = t["session_us"]
-    else:
-        session_info = t["session_night"]
+    session_key, time_str = get_session_info(lang)
+    session_info = t[session_key]
 
     await message.answer(
-        t["signal_panel"].format(
+        t["trading_panel"].format(
             div=DIV,
             session=session_info,
-            time=now_msk.strftime('%H:%M'),
+            time=time_str,
         ),
         reply_markup=pair_kb,
         parse_mode="HTML"
@@ -1992,7 +2178,6 @@ async def signal_panel(message: Message):
 
 @dp.message(F.text.in_(set(pairs)))
 async def set_pair(message: Message):
-    """Step 2: user picked a pair — ask for expiration."""
     uid  = message.from_user.id
     lang = user_lang.get(uid, "ru")
     t    = TEXTS[lang]
@@ -2005,19 +2190,20 @@ async def set_pair(message: Message):
 
 @dp.message(F.text.in_(set(times)))
 async def set_time(message: Message):
-    """Step 3: user picked expiration — confirm and show ready state."""
     uid  = message.from_user.id
     lang = user_lang.get(uid, "ru")
     t    = TEXTS[lang]
 
     if uid not in user_temp_data or "pair" not in user_temp_data.get(uid, {}):
-        await message.answer(t["select_pair_first"], parse_mode="HTML")
+        await message.answer(
+            t["select_pair_first"],
+            parse_mode="HTML"
+        )
         return
 
     user_temp_data[uid]["time"] = message.text
     pair = user_temp_data[uid]["pair"]
 
-    # Show confirmation and "New Signal" keyboard
     await message.answer(
         t["time_selected"].format(div=DIV, pair=pair, time=message.text),
         reply_markup=get_signal_kb(uid),
@@ -2025,23 +2211,17 @@ async def set_time(message: Message):
     )
 
 # ════════════════════════════════════════════════
-#     "🔄 Новый сигнал" / "🔄 New Signal"
-#     Re-runs signal with existing pair+time
+#     MAIN SIGNAL HANDLER
 # ════════════════════════════════════════════════
-@dp.message(F.text.in_({"🔄 New Signal", "🔄 Новый сигнал"}))
-async def repeat_signal(message: Message):
-    """Shortcut — generate signal with last selected pair/time."""
+@dp.message(Command("signals"))
+@dp.message(F.text.in_({"⚡ Get Signal", "⚡ Получить Сигнал"}))
+async def get_signal(message: Message):
     uid  = message.from_user.id
     lang = user_lang.get(uid, "ru")
     t    = TEXTS[lang]
     u    = db_get_user(uid)
     if not u["has_access"]:
         return
-
-    data = user_temp_data.get(uid, {})
-    if not data.get("pair") or not data.get("time"):
-        # No pair selected yet — route to signal panel
-        return await signal_panel(message)
 
     # Anti-spam
     now_ts  = time.time()
@@ -2073,6 +2253,24 @@ async def repeat_signal(message: Message):
                 parse_mode="HTML"
             )
 
+    # Check configuration
+    data = user_temp_data.get(uid, {})
+
+    if not data.get("pair"):
+        return await message.answer(
+            t["no_pair_selected"],
+            reply_markup=get_main_menu(True, uid),
+            parse_mode="HTML"
+        )
+
+    if not data.get("time"):
+        await message.answer(
+            t["no_time_selected"].format(pair=data['pair']),
+            reply_markup=time_kb,
+            parse_mode="HTML"
+        )
+        return
+
     last_signal_request[uid] = now_ts
 
     # Animated progress bar
@@ -2103,6 +2301,7 @@ async def repeat_signal(message: Message):
         except (TelegramBadRequest, Exception):
             pass
 
+    # Signal generation
     direction, confidence, _ = generate_otc_signal(data["pair"], data["time"])
 
     db_update_user(uid, signals=u["signals"] + 1, daily=daily + 1, date=today)
@@ -2124,6 +2323,7 @@ async def repeat_signal(message: Message):
     else:
         conf_label = t["conf_standard"]
 
+    # Limit line
     if remaining == 0:
         limit_line = t["signal_last"]
     elif remaining <= 3:
@@ -2131,23 +2331,17 @@ async def repeat_signal(message: Message):
     else:
         limit_line = t["signal_counter"].format(used=new_daily, limit=current_limit, left=remaining)
 
+    # PRO block — with language-aware session
     pro_block = ""
     if sub_type in ("junior", "pro"):
-        now_msk = datetime.utcnow() + timedelta(hours=3)
-        hour = now_msk.hour
-        if 3 <= hour < 10:
-            session = t["session_asian"]
-        elif 10 <= hour < 18:
-            session = t["session_eu"]
-        elif 18 <= hour < 23:
-            session = t["session_us"]
-        else:
-            session = t["session_night"]
+        session_key, time_str = get_session_info(lang)
+        session = t[session_key]
 
         volatility_opts_ru = ["🟢 Низкая", "🟡 Умеренная", "🟠 Средняя", "🔴 Высокая"]
         volatility_opts_en = ["🟢 Low", "🟡 Moderate", "🟠 Medium", "🔴 High"]
         volatility_opts = volatility_opts_en if lang == "en" else volatility_opts_ru
-        rng_vol  = random.Random(hash(f"{data['pair']}_{confidence}_{hour}"))
+        hour_for_seed = datetime.utcnow().hour if lang == "en" else (datetime.utcnow() + timedelta(hours=3)).hour
+        rng_vol  = random.Random(hash(f"{data['pair']}_{confidence}_{hour_for_seed}"))
         volatility = rng_vol.choice(volatility_opts)
 
         pro_block = (
@@ -2156,6 +2350,7 @@ async def repeat_signal(message: Message):
             f"  📊 {t['pro_volatility_label']}: <b>{volatility}</b>\n"
         )
 
+    # PRO extended block
     pro_extra = ""
     if sub_type == "pro":
         rng_pro = random.Random(hash(f"{data['pair']}_{direction}_{confidence}"))
@@ -2166,6 +2361,9 @@ async def repeat_signal(message: Message):
             f"  💪 {t['trend_label']}: <code>{trend_bar}</code> <b>{trend_strength}%</b>\n"
             f"  💬 <i>{pro_tip}</i>\n"
         )
+
+    # Beginner hint (shown for all users)
+    hint = t["signal_hint"]
 
     res = (
         f"{dir_emoji} <b>{dir_line}</b> {dir_emoji}\n"
@@ -2180,6 +2378,7 @@ async def repeat_signal(message: Message):
         f"\n{SDIV}\n"
         f"  {limit_line}\n"
         f"{t['signal_footer']}"
+        f"{hint}"
     )
 
     try:
@@ -2191,14 +2390,6 @@ async def repeat_signal(message: Message):
         await message.answer(res, parse_mode="HTML", reply_markup=get_signal_kb(uid))
     except Exception as e:
         print(f"Signal send error: {e}")
-
-# ════════════════════════════════════════════════
-#     MAIN SIGNAL HANDLER (legacy /signals command)
-# ════════════════════════════════════════════════
-@dp.message(Command("signals"))
-async def get_signal_cmd(message: Message):
-    """Handles /signals command — same as pressing 🔄 New Signal."""
-    await repeat_signal(message)
 
 # ════════════════════════════════════════════════
 #              PROFILE
@@ -2241,12 +2432,8 @@ async def profile(message: Message):
     name    = message.from_user.first_name or "Trader"
     license_str = t["profile_license_active"] if u['has_access'] else t["profile_license_inactive"]
 
-    # Profile inline button: lot calculator (still available via profile)
     profile_kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text="🧮 Калькулятор лота" if lang == "ru" else "🧮 Lot Calculator",
-            callback_data="open_lot_calc"
-        )],
+        [InlineKeyboardButton(text=t["btn_calc_lot_inline"], callback_data="open_lot_calc")],
     ])
 
     await message.answer(
@@ -2312,6 +2499,12 @@ async def stats(message: Message):
         bar_h = "█" * vol + "░" * (10 - vol)
         hourly_bars += f"  {h:02d}:00  <code>{bar_h}</code>\n"
 
+    # Language-aware time label
+    if lang == "en":
+        date_str = datetime.utcnow().strftime('%d.%m.%Y %H:%M')
+    else:
+        date_str = (datetime.utcnow() + timedelta(hours=3)).strftime('%d.%m.%Y %H:%M')
+
     await message.answer(
         t["stats"].format(
             div=DIV, sdiv=SDIV,
@@ -2322,7 +2515,7 @@ async def stats(message: Message):
             peak_h=peak_hour, peak_h1=peak_hour + 1,
             hourly=hourly_bars,
             users=total_users + 152, active=active_users + 94,
-            date=datetime.now().strftime('%d.%m.%Y %H:%M'),
+            date=date_str,
         ),
         parse_mode="HTML"
     )
@@ -2333,7 +2526,7 @@ async def stats(message: Message):
 # ════════════════════════════════════════════════
 async def main():
     print("=" * 60)
-    print("  🚀 AI TRADING BOT — OTC PRO v4.0 (Simplified UX)")
+    print("  🚀 AI TRADING TERMINAL — OTC PRO v4.0")
     print("  ✅ BOT STARTED SUCCESSFULLY")
     print("  🌐 BILINGUAL: RU / EN")
     print("  🧠 SMART PRECISION ENGINE v4 (OTC MODE):")
@@ -2342,7 +2535,6 @@ async def main():
     print("  💱 OTC PAIRS: 12 instruments with country flags")
     print("  ⏱ TIMEFRAMES: 5s / 10s / 15s / 30s")
     print("  📦 LIMITS: FREE=25 | JUNIOR=50 | PRO=100")
-    print("  📋 MENU: Signal | Profile | Stats | Sub | Access | Support")
     print("=" * 60)
 
     init_db()
